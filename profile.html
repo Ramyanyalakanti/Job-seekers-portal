@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Portal Scraper</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .skill-tag {
+            @apply px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800 hover:bg-gray-200 transition;
+        }
+        .portal-icon {
+            width: 16px;
+            height: 16px;
+            display: inline-block;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <header class="bg-indigo-700 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="flex items-center mb-4 md:mb-0">
+                    <img src="https://placehold.co/40x40/3b82f6/FFFFFF?text=JS" alt="Job portal scraper logo with document and magnifying glass icon in blue and white colors" class="rounded-full mr-3">
+                    <h1 class="text-2xl font-bold">Job Portal Scraper</h1>
+                </div>
+                <nav class="flex space-x-4">
+                    <a href="#" class="hover:underline">Home</a>
+                    <a href="#how-it-works" class="hover:underline">How It Works</a>
+                    <a href="#faq" class="hover:underline">FAQ</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+        <section class="mb-12">
+            <div class="max-w-3xl mx-auto text-center">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">Find Matching Jobs Across Multiple Portals</h2>
+                <p class="text-lg text-gray-600 mb-8">
+                    Enter a job title and description to automatically search across popular job portals and 
+                    find matching opportunities.
+                </p>
+                
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <form id="jobSearchForm" class="space-y-4">
+                        <div>
+                            <label for="jobTitle" class="block text-gray-700 font-medium mb-2">Job Title *</label>
+                            <input type="text" id="jobTitle" required
+                                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                placeholder="e.g. Software Engineer">
+                        </div>
+                        <div>
+                            <label for="jobDescription" class="block text-gray-700 font-medium mb-2">Job Description *</label>
+                            <textarea id="jobDescription" rows="5" required
+                                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                placeholder="Enter key responsibilities, skills, and qualifications..."></textarea>
+                        </div>
+                        <div>
+                            <label for="portals" class="block text-gray-700 font-medium mb-2">Select Portals</label>
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                <div>
+                                    <input type="checkbox" id="naukri" name="portals" value="naukri" checked class="mr-2">
+                                    <label for="naukri">Naukri</label>
+                                </div>
+                                <div>
+                                    <input type="checkbox" id="indeed" name="portals" value="indeed" checked class="mr-2">
+                                    <label for="indeed">Indeed</label>
+                                </div>
+                                <div>
+                                    <input type="checkbox" id="linkedin" name="portals" value="linkedin" checked class="mr-2">
+                                    <label for="linkedin">LinkedIn</label>
+                                </div>
+                                <div>
+                                    <input type="checkbox" id="foundit" name="portals" value="foundit" class="mr-2">
+                                    <label for="foundit">FoundIt</label>
+                                </div>
+                                <div>
+                                    <input type="checkbox" id="timesjobs" name="portals" value="timesjobs" class="mr-2">
+                                    <label for="timesjobs">TimesJobs</label>
+                                </div>
+                                <div>
+                                    <input type="checkbox" id="shine" name="portals" value="shine" class="mr-2">
+                                    <label for="shine">Shine</label>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" id="searchBtn"
+                            class="w-full bg-indigo-600 text-white py-3 px-6 rounded-md hover:bg-indigo-700 transition duration-300">
+                            <i class="fas fa-search mr-2"></i> Search Jobs
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <section id="resultsSection" class="mb-12 hidden">
+            <div class="max-w-6xl mx-auto">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">Search Results</h2>
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <span id="resultsCount" class="text-gray-600">0 jobs found</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="text-gray-600 mr-2">Filter by:</span>
+                        <select id="resultsFilter" class="border border-gray-300 rounded-md px-3 py-1">
+                            <option value="all">All Portals</option>
+                            <option value="naukri">Naukri</option>
+                            <option value="indeed">Indeed</option>
+                            <option value="linkedin">LinkedIn</option>
+                            <option value="foundit">FoundIt</option>
+                            <option value="timesjobs">TimesJobs</option>
+                            <option value="shine">Shine</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="resultsContainer" class="space-y-4">
+                    <!-- Results will be loaded here by JavaScript -->
+                </div>
+                <div id="loadingIndicator" class="text-center py-8 hidden">
+                    <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500 mx-auto"></div>
+                    <p class="mt-4 text-gray-600">Searching job portals, please wait...</p>
+                </div>
+                <div id="noResults" class="text-center py-12 hidden">
+                    <img src="https://placehold.co/300x200/e2e8f0/94a3b8?text=No%20Results%20Found" alt="No results found illustration showing a magnifying glass over a document with a sad face" class="mx-auto mb-4">
+                    <h3 class="text-xl font-medium text-gray-700">No matching jobs found</h3>
+                    <p class="text-gray-500">Try modifying your search criteria</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="how-it-works" class="mb-12">
+            <div class="max-w-6xl mx-auto">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">How It Works</h2>
+                <div class="grid md:grid-cols-3 gap-8">
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <div class="bg-indigo-100 w-12 h-12 rounded-full flex items-center justify-center mb-4">
+                            <span class="text-indigo-600 text-xl font-bold">1</span>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2">Enter Job Details</h3>
+                        <p class="text-gray-600">
+                            Provide a job title and description that matches the role you're looking for.
+                        </p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <div class="bg-indigo-100 w-12 h-12 rounded-full flex items-center justify-center mb-4">
+                            <span class="text-indigo-600 text-xl font-bold">2</span>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2">Search Multiple Portals</h3>
+                        <p class="text-gray-600">
+                            Our system searches across all selected job portals simultaneously.
+                        </p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <div class="bg-indigo-100 w-12 h-12 rounded-full flex items-center justify-center mb-4">
+                            <span class="text-indigo-600 text-xl font-bold">3</span>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2">Get Matched Results</h3>
+                        <p class="text-gray-600">
+                            Receive a consolidated list of matching jobs from all the portals.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-4 md:mb-0">
+                    <p>&copy; 2023 Job Portal Scraper. All rights reserved.</p>
+                </div>
+                <div class="flex space-x-4">
+                    <a href="#" class="hover:underline">Privacy Policy</a>
+                    <a href="#" class="hover:underline">Terms of Service</a>
+                    <a href="#" class="hover:underline">Contact Us</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Job Result Template -->
+    <template id="jobResultTemplate">
+        <div class="job-card bg-white rounded-lg shadow-md overflow-hidden border-l-4 border-indigo-500 hover:shadow-lg transition duration-300" data-portal="">
+            <div class="p-5">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h3 class="text-xl font-bold job-title text-gray-800"></h3>
+                        <p class="job-company text-indigo-600 font-medium"></p>
+                    </div>
+                    <div class="job-portal-badge px-3 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800"></div>
+                </div>
+                <p class="job-description text-gray-600 mb-4"></p>
+                <div class="skills-container flex flex-wrap gap-2 mb-4">
+                    <!-- Skills will be added here -->
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="job-location text-sm text-gray-500 flex items-center">
+                        <i class="fas fa-map-marker-alt mr-1"></i> 
+                        <span class="location-text"></span>
+                    </span>
+                    <span class="job-posted text-sm text-gray-500"></span>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-5 py-3 border-t border-gray-200">
+                <a href="#" target="_blank" class="job-link text-indigo-600 font-medium hover:underline">
+                    View Job <i class="fas fa-external-link-alt ml-1 text-sm"></i>
+                </a>
+            </div>
+        </div>
+    </template>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const jobSearchForm = document.getElementById('jobSearchForm');
+            const resultsSection = document.getElementById('resultsSection');
+            const resultsContainer = document.getElementById('resultsContainer');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const noResults = document.getElementById('noResults');
+            const resultsCount = document.getElementById('resultsCount');
+            const resultsFilter = document.getElementById('resultsFilter');
+            const jobResultTemplate = document.getElementById('jobResultTemplate');
+            
+            // Portal icons (would be replaced with actual API data)
+            const portalIcons = {
+                naukri: '📄',
+                indeed: '🔍',
+                linkedin: '👔',
+                foundit: '💼',
+                timesjobs: '⏱️',
+                shine: '✨'
+            };
+
+            // Portal colors (would be replaced with actual API data)
+            const portalColors = {
+                naukri: 'text-blue-600',
+                indeed: 'text-yellow-600',
+                linkedin: 'text-blue-500',
+                foundit: 'text-orange-500',
+                timesjobs: 'text-red-500',
+                shine: 'text-purple-500'
+            };
+
+            jobSearchForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const jobTitle = document.getElementById('jobTitle').value;
+                const jobDescription = document.getElementById('jobDescription').value;
+                const selectedPortals = Array.from(document.querySelectorAll('input[name="portals"]:checked'))
+                    .map(input => input.value);
+                
+                if (!jobTitle || !jobDescription || selectedPortals.length === 0) {
+                    alert('Please fill all required fields and select at least one portal');
+                    return;
+                }
+                
+                // Show loading and hide other elements
+                resultsSection.classList.remove('hidden');
+                loadingIndicator.classList.remove('hidden');
+                resultsContainer.innerHTML = '';
+                noResults.classList.add('hidden');
+                
+                // Simulate API call (in a real app, this would be an actual API call)
+                setTimeout(() => {
+                    searchJobs(jobTitle, jobDescription, selectedPortals);
+                }, 1500);
+            });
+            
+            resultsFilter.addEventListener('change', function() {
+                filterResults(this.value);
+            });
+            
+            function searchJobs(title, description, portals) {
+                // In a real application, this would make an API call to your backend
+                // For demonstration, we'll use mock data
+                
+                const mockJobs = generateMockJobs(title, portals);
+                
+                loadingIndicator.classList.add('hidden');
+                
+                if (mockJobs.length === 0) {
+                    noResults.classList.remove('hidden');
+                    resultsCount.textContent = '0 jobs found';
+                    return;
+                }
+                
+                displayResults(mockJobs);
+                resultsCount.textContent = `${mockJobs.length} jobs found`;
+            }
+            
+            function generateMockJobs(title, portals) {
+                // Generate mock job data based on input
+                const countPerPortal = 2 + Math.floor(Math.random() * 3); // 2-4 jobs per portal
+                const jobs = [];
+                
+                const skills = ['JavaScript', 'Python', 'Java', 'React', 'Node.js', 'AWS', 'SQL', 'Docker', 'Kubernetes'];
+                const locations = ['Bangalore', 'Hyderabad', 'Pune', 'Mumbai', 'Delhi', 'Chennai', 'Remote'];
+                const companies = ['Tech Solutions Inc', 'Innovate Corp', 'Digital Enterprises', 'NextGen Tech', 'Future Systems'];
+                
+                portals.forEach(portal => {
+                    for (let i = 0; i < countPerPortal; i++) {
+                        const randomSkills = [...skills]
+                            .sort(() => 0.5 - Math.random())
+                            .slice(0, 3 + Math.floor(Math.random() * 3));
+                            
+                        const job = {
+                            title: `${title} ${i % 2 === 0 ? '(Senior)' : ''}`,
+                            company: companies[Math.floor(Math.random() * companies.length)],
+                            description: `Looking for a ${title} with ${randomSkills.join(', ')} experience. Must have at least ${3 + i} years of experience in the field.`,
+                            portal: portal,
+                            skills: randomSkills,
+                            location: locations[Math.floor(Math.random() * locations.length)],
+                            posted: `${1 + Math.floor(Math.random() * 30)} days ago`,
+                            url: `https://${portal}.com/job-${Math.floor(Math.random() * 10000)}`
+                        };
+                        
+                        jobs.push(job);
+                    }
+                });
+                
+                return jobs;
+            }
+            
+            function displayResults(jobs) {
+                resultsContainer.innerHTML = '';
+                
+                jobs.forEach(job => {
+                    const clone = jobResultTemplate.content.cloneNode(true);
+                    const jobCard = clone.querySelector('.job-card');
+                    const titleEl = clone.querySelector('.job-title');
+                    const companyEl = clone.querySelector('.job-company');
+                    const descriptionEl = clone.querySelector('.job-description');
+                    const portalBadge = clone.querySelector('.job-portal-badge');
+                    const skillsContainer = clone.querySelector('.skills-container');
+                    const locationEl = clone.querySelector('.location-text');
+                    const postedEl = clone.querySelector('.job-posted');
+                    const linkEl = clone.querySelector('.job-link');
+                    
+                    jobCard.dataset.portal = job.portal;
+                    titleEl.textContent = job.title;
+                    companyEl.textContent = job.company;
+                    descriptionEl.textContent = job.description;
+                    portalBadge.textContent = `${portalIcons[job.portal] || '🏢'} ${job.portal.charAt(0).toUpperCase() + job.portal.slice(1)}`;
+                    locationEl.textContent = job.location;
+                    postedEl.textContent = job.posted;
+                    linkEl.href = job.url;
+                    
+                    // Add skill tags
+                    job.skills.forEach(skill => {
+                        const skillTag = document.createElement('span');
+                        skillTag.className = 'skill-tag';
+                        skillTag.textContent = skill;
+                        skillsContainer.appendChild(skillTag);
+                    });
+                    
+                    resultsContainer.appendChild(clone);
+                });
+            }
+            
+            function filterResults(filterValue) {
+                const jobCards = document.querySelectorAll('.job-card');
+                
+                jobCards.forEach(card => {
+                    if (filterValue === 'all' || card.dataset.portal === filterValue) {
+                        card.classList.remove('hidden');
+                    } else {
+                        card.classList.add('hidden');
+                    }
+                });
+                
+                // Update results count
+                const visibleCount = document.querySelectorAll('.job-card:not(.hidden)').length;
+                resultsCount.textContent = `${visibleCount} jobs found`;
+                
+                // Show/hide no results message
+                if (visibleCount === 0) {
+                    noResults.classList.remove('hidden');
+                } else {
+                    noResults.classList.add('hidden');
+                }
+            }
+        });
+    </script>
+</body>
+</html>
